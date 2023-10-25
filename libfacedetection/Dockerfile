@@ -42,4 +42,4 @@ RUN python3 setup.py develop
 RUN pip install -r requirements.txt
 
 
-ENTRYPOINT [ "./../build_and_run.sh" ] 
+# ENTRYPOINT [ "./../build_and_run.sh" ] 

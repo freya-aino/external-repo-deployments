@@ -18,8 +18,8 @@ RUN pip install typing-extensions==4.1.1
 RUN pip install torch==1.7.0+cu110 torchvision==0.8.1+cu110 -f https://download.pytorch.org/whl/torch_stable.html
 
 # IMPORT LFD
-# git clone --recursive https://github.com/YonghaoHe/LFD-A-Light-and-Fast-Detector
-COPY LFD /opt/app/LFD
+RUN git clone --recursive https://github.com/YonghaoHe/LFD-A-Light-and-Fast-Detector /opt/app/LFD
+# COPY LFD /opt/app/LFD
 
 # INSTALL LIBJPG-TURBO
 WORKDIR /opt/
