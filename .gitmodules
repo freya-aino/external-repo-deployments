@@ -1,0 +1,3 @@
+[submodule "LFD/LFD"]
+	path = LFD/LFD
+	url = https://github.com/YonghaoHe/LFD-A-Light-and-Fast-Detector
