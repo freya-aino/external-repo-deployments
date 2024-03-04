@@ -1,3 +1,5 @@
+# based on https://github.com/Media-Smart/vedadet
+
 FROM nvcr.io/nvidia/tensorrt:22.12-py3
 # FROM nvidia/cuda:11.8.0-devel-ubuntu20.04
 
@@ -8,6 +10,7 @@ RUN apt-get upgrade -y
 
 RUN apt-get update -y
 RUN apt-get install wget -y
+RUN apt-get install git-all -y
 
 WORKDIR /opt/
 RUN wget https://repo.anaconda.com/archive/Anaconda3-2023.07-2-Linux-x86_64.sh
@@ -33,10 +36,11 @@ RUN mim install "mmcv>=2.0.0"
 RUN mim install mmdet
 
 # SETUP VEDADET PROJECT
-COPY . /app/
-WORKDIR /app/vedadet
+RUN git clone https://github.com/Media-Smart/vedadet.git /opt/app/vedadet
+WORKDIR /opt/app/vedadet
 ENV vedadet_root=${PWD}
 RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -v -e .
 
 
-# ENTRYPOINT [ "./../build_and_run.sh" ] 
+# ENTRYPOINT ["python" "./server.py"]

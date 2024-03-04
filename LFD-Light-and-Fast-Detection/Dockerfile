@@ -1,3 +1,5 @@
+# based on https://github.com/YonghaoHe/LFD-A-Light-and-Fast-Detector
+
 FROM nvidia/cuda:11.0.3-devel-ubuntu20.04
 # FROM nvcr.io/nvidia/tensorrt:20.09-py3
 
@@ -19,7 +21,6 @@ RUN pip install torch==1.7.0+cu110 torchvision==0.8.1+cu110 -f https://download.
 
 # IMPORT LFD
 RUN git clone --recursive https://github.com/YonghaoHe/LFD-A-Light-and-Fast-Detector /opt/app/LFD
-# COPY LFD /opt/app/LFD
 
 # INSTALL LIBJPG-TURBO
 WORKDIR /opt/
@@ -32,14 +33,8 @@ RUN wget https://sourceforge.net/projects/libjpeg-turbo/files/2.0.5/libjpeg-turb
     make && \
     cp ./libturbojpeg.so.0.2.0 /opt/app/LFD/lfd/data_pipeline/dataset/utils/libs/
 
-#
-WORKDIR /opt/app/
-
-#
+# INSTALL LFD
 ENV PYTHONPATH /opt/app/LDF/:$PYTHONPATH
 WORKDIR /opt/app/LFD/
 RUN pip install -r requirements.txt
-
-#
-COPY build_and_run.sh .
-# ENTRYPOINT [ "./build_and_run.sh" ]
+RUN python3 setup.py build_ext
