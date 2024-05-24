@@ -12,12 +12,23 @@ RUN apt-get update -y && apt-get upgrade -y
 RUN DEBIAN_FRONTEND=noninteractive apt-get install software-properties-common -y
 RUN add-apt-repository ppa:deadsnakes/ppa
 RUN apt-get update
-RUN apt-get install python3.6 python3-pip -y
-RUN apt install make cmake wget git-all -y
+RUN DEBIAN_FRONTEND=noninteractive \
+    apt-get install -y \
+    python3.6 \
+    pip
+RUN BIAN_FRONTEND=noninteractive \
+    apt install -y \
+    make \
+    cmake \
+    wget \
+    git
 
 # INSTALL PYTORCH
-RUN pip install typing-extensions==4.1.1
-RUN pip install torch==1.7.0+cu110 torchvision==0.8.1+cu110 -f https://download.pytorch.org/whl/torch_stable.html
+RUN pip install \
+    typing-extensions==4.1.1 \
+    torch==1.7.0+cu110 \
+    torchvision==0.8.1+cu110 \
+    -f https://download.pytorch.org/whl/torch_stable.html
 
 # IMPORT LFD
 RUN git clone --recursive https://github.com/YonghaoHe/LFD-A-Light-and-Fast-Detector /opt/app/LFD
