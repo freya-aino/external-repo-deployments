@@ -16,6 +16,7 @@ RUNNING_MODE = vision.RunningMode.IMAGE
 
 NUM_HANDS = 2
 MIN_HAND_DETECTION_CONFIDENCE = 0.5
+MIN_HAND_PRESENCE_CONFIDENCE = 0.5
 
 NUM_FACES = 1
 MIN_FACE_DETECTION_CONFIDENCE = 0.5
@@ -111,6 +112,7 @@ def parse_pose_keypoints_readable(keypoints):
 app = FastAPI()
 
 hand_tracker = None
+hand_gesture = None
 face_tracker = None
 face_detector = None
 pose_tracker = None
@@ -125,7 +127,18 @@ async def initialize_hand_tracker():
             base_options=python_utils.BaseOptions(model_asset_path="hand_landmarker.task"),
             running_mode = RUNNING_MODE,
             num_hands = NUM_HANDS,
-            min_hand_detection_confidence = MIN_HAND_DETECTION_CONFIDENCE
+            min_hand_detection_confidence = MIN_HAND_DETECTION_CONFIDENCE,
+            min_hand_presence_confidence = MIN_HAND_PRESENCE_CONFIDENCE
+        )
+    )
+    
+    global hand_gesture
+    hand_gesture = vision.GestureRecognizer.create_from_options(
+        vision.GestureRecognizerOptions(
+            base_options=python_utils.BaseOptions(model_asset_path="gesture_recognizer.task"),
+            running_mode = RUNNING_MODE,
+            min_hand_detection_confidence = MIN_HAND_DETECTION_CONFIDENCE,
+            min_hand_presence_confidence = MIN_HAND_PRESENCE_CONFIDENCE
         )
     )
 
@@ -180,7 +193,39 @@ async def initialize_pose_tracker():
 
 # ROUTES --------------------------------------------------------
 
-@app.post("/hands")
+@app.post("/hands/gesture")
+async def hands_gesture(file: Union[UploadFile, bytes] = File(...)):
+    
+    assert hand_gesture != None, "Model not loaded yet!"
+    
+    image = await file_to_mediapipe_image(file)
+    
+    # predict keypionts and process results
+    result = hand_gesture.recognize(image)
+    
+    if not result.handedness or len(result.handedness) == 0:
+        return { "status": "error", "return": "No hands detected!" }
+    
+    hands = []
+    for i in range(len(result.handedness)):
+        hand = {
+            "handedness": result.handedness[i][0].category_name,
+            "score": result.handedness[i][0].score,
+            "gesture": {
+                result.gestures[i].gesture.categoryName: result.gestures[i].score
+            }
+        }
+        hands.append(hand)
+        
+    return { 
+        "status": "success", 
+        "return": {
+            "hands": hands,
+            "image_size": [image.width, image.height]
+        }
+    }
+
+@app.post("/hands/detect")
 async def hands(file: Union[UploadFile, bytes] = File(...)):
     
     assert hand_tracker != None, "Model not loaded yet!"
@@ -190,9 +235,9 @@ async def hands(file: Union[UploadFile, bytes] = File(...)):
     # assert (image.width == 192 and image.height == 192) or (image.width == 224 and image.height == 224), "Image size must be 192x192 or 224x224!"
     
     # predict keypionts and process results
-    result = hand_tracker.process(image)
+    result = hand_tracker.detect(image)
     
-    if result.handedness != None:
+    if not result.handedness or len(result.handedness) == 0:
         return { "status": "error", "return": "No hands detected!" }
     
     hands = []
@@ -281,7 +326,7 @@ async def face_keypoints(file: Union[UploadFile, bytes] = File(...)):
     image = await file_to_mediapipe_image(file)
     
     # predict keypionts, transformations and blendshapes and process results
-    result = face_tracker.process(image)
+    result = face_tracker.detect(image)
     
     if len(result.face_landmarks) == 0:
         return { "status": "error", "return": "No faces detected!" }
@@ -325,7 +370,7 @@ async def pose(file: Union[UploadFile, bytes] = File(...)):
     image = await file_to_mediapipe_image(file)
     
     # predict keypionts and process results
-    result = pose_tracker.process(image)
+    result = pose_tracker.detect(image)
     
     if len(result.pose_landmarks) == 0:
         return { "status": "error", "return": "No poses detected!" }
