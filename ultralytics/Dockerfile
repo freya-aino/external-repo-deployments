@@ -9,21 +9,20 @@ RUN DEBIAN_FRONTEND=noninteractive \
     pip \
     wget
 
+# install ultralytics
+RUN pip install ultralytics
+RUN pip install \
+    fastapi \
+    uvicorn
 
+# load models
 RUN wget -q https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x.pt -O ./DetectionCOCO.pt
 RUN wget -q https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-oiv7.pt -O ./DetectionOpenImagev7.pt
 RUN wget -q https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-seg.pt -O ./SegmentationCOCO.pt
 RUN wget -q https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-pose-p6.pt -O ./PoseCOCO.pt
 RUN wget -q https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-obb.pt -O ./OBBDOTAv1.pt
 RUN wget -q https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-cls.pt -O ./ClassificationImageNet.pt
-RUN wget -q https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-pose-p6.pt -O ./PoseCOCO.pt
 
-
-# install ultralytics
-RUN pip install ultralytics
-RUN pip install \
-    fastapi \
-    uvicorn
 
 
 COPY . .
