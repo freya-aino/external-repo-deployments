@@ -1,28 +1,26 @@
-FROM nvidia/cuda:11.0.3-cudnn8-devel-ubuntu20.04
+FROM pytorch/pytorch:2.4.1-cuda12.4-cudnn9-devel
 
-WORKDIR /opt/app
 
-RUN apt-get update && apt-get upgrade -y
-RUN DEBIAN_FRONTEND=noninteractive \
-    apt-get install -y --no-install-recommends \
-    python3.10 \
-    pip \
-    wget
+RUN apt-get update
+RUN apt-get install -y \
+    libgl1-mesa-glx \
+    libglib2.0-0
 
-# install ultralytics
+WORKDIR /app
+
 RUN pip install ultralytics
+RUN python -c "from ultralytics import YOLO; YOLO('yolov8x.pt')"
+RUN python -c "from ultralytics import YOLO; YOLO('yolov8x-seg.pt')"
+RUN python -c "from ultralytics import YOLO; YOLO('yolov8x-pose-p6.pt')"
+RUN python -c "from ultralytics import YOLO; YOLO('yolov8x-obb.pt')"
+RUN python -c "from ultralytics import YOLO; YOLO('yolov8x-cls.pt')"
+
+
+# install fastapi
 RUN pip install \
     fastapi \
-    uvicorn
-
-# load models
-RUN wget -q https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x.pt -O ./DetectionCOCO.pt
-RUN wget -q https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-oiv7.pt -O ./DetectionOpenImagev7.pt
-RUN wget -q https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-seg.pt -O ./SegmentationCOCO.pt
-RUN wget -q https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-pose-p6.pt -O ./PoseCOCO.pt
-RUN wget -q https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-obb.pt -O ./OBBDOTAv1.pt
-RUN wget -q https://github.com/ultralytics/assets/releases/download/v8.2.0/yolov8x-cls.pt -O ./ClassificationImageNet.pt
-
+    uvicorn \
+    python-multipart
 
 
 COPY . .
